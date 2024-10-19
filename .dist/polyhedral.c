@@ -1,7 +1,7 @@
+#include <SDL2/SDL.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-
 
 //Data Structure
 // Define a 3D vector (vertex)
@@ -106,7 +106,6 @@ void translate_polyhedron(Polyhedron *p, float dx, float dy, float dz) {
 
 //rotation
 
-
 void rotate_polyhedron_z(Polyhedron *p, float angle) {
     float radians = angle * M_PI / 180.0;
     for (int i = 0; i < p->vertex_count; i++) {
@@ -117,7 +116,100 @@ void rotate_polyhedron_z(Polyhedron *p, float angle) {
     }
     printf("Polyhedron rotated around Z-axis by %f degrees\n", angle);
 }
-
 //visualize
+void visualize_polyhedron(Polyhedron *p) {
+    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+        printf("SDL Initialization Failed: %s\n", SDL_GetError());
+        return;
+    }
+
+    SDL_Window *window = SDL_CreateWindow("Polyhedron Visualization", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, SDL_WINDOW_SHOWN);
+    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    SDL_RenderClear(renderer);
+
+    // Render edges (simple example for 2D projection)
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    for (int i = 0; i < p->edge_count; i++) {
+        int v1 = p->edges[i].v1;
+        int v2 = p->edges[i].v2;
+        SDL_RenderDrawLine(renderer, 
+                           (int)p->vertices[v1].x * 100 + 320, (int)p->vertices[v1].y * 100 + 240,
+                           (int)p->vertices[v2].x * 100 + 320, (int)p->vertices[v2].y * 100 + 240);
+    }
+
+    SDL_RenderPresent(renderer);
+    SDL_Delay(5000); // Display for 5 seconds
+
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+}
+
+
+
+// Declare all functions here (from the previous code)
+
+int main(int argc, char* argv[]) {
+    int vertex_count, edge_count, face_count;
+    
+    // Ask the user for the number of vertices, edges, and faces
+    printf("Enter the number of vertices: ");
+    scanf("%d", &vertex_count);
+    printf("Enter the number of edges: ");
+    scanf("%d", &edge_count);
+    printf("Enter the number of faces: ");
+    scanf("%d", &face_count);
+    
+    // Create the polyhedron with user-specified vertices, edges, and faces
+    Polyhedron *polyhedron = create_polyhedron(vertex_count, edge_count, face_count);
+    
+    // Input the vertices, edges, and faces
+    input_vertices(polyhedron);
+    input_edges(polyhedron);
+    input_faces(polyhedron);
+
+     // Visualize the polyhedron using SDL
+    char visualize_choice;
+    printf("Do you want to visualize the polyhedron (y/n)? ");
+    scanf(" %c", &visualize_choice);
+    if (visualize_choice == 'y') {
+        visualize_polyhedron(polyhedron);
+    }
+    
+    // Perform translation
+    /*float dx, dy, dz;
+    printf("Enter translation values (dx dy dz): ");
+    scanf("%f %f %f", &dx, &dy, &dz);
+    translate_polyhedron(polyhedron, dx, dy, dz);
+
+     // Visualize the polyhedron using SDL
+    
+    printf("Do you want to visualize the polyhedron (y/n)? ");
+    scanf(" %c", &visualize_choice);
+    if (visualize_choice == 'y') {
+        visualize_polyhedron(polyhedron);
+    }*/
+    
+    // Perform rotation around Z-axis
+    float angle;
+    printf("Enter rotation angle around Z-axis (degrees): ");
+    scanf("%f", &angle);
+    rotate_polyhedron_z(polyhedron, angle);
+    
+    // Visualize the polyhedron using SDL
+    
+    printf("Do you want to visualize the polyhedron (y/n)? ");
+    scanf(" %c", &visualize_choice);
+    if (visualize_choice == 'y') {
+        visualize_polyhedron(polyhedron);
+    }
+
+    // Free the allocated memory
+    free_polyhedron(polyhedron);
+    
+    return 0;
+}
+
 
 
