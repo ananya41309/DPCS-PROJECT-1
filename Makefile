@@ -1,6 +1,6 @@
 CC = g++
 CFLAGS = -Wall -I src/include
-LDFLAGS = -L src/lib -lmingw32 -lSDL2main -lSDL2 -lm
+LDFLAGS = -L /usr/local/lib -lSDL2main -lSDL2 -lm # SDL2 paths for macOS
 OBJDIR = obj
 
 # Source files
@@ -10,15 +10,15 @@ OBJS = $(SRCS:src/%.c=$(OBJDIR)/%.o)
 
 # Target to create the binary
 polyhedron_app: $(OBJS)
-	@if not exist $(OBJDIR) mkdir $(OBJDIR)
+	mkdir -p $(OBJDIR)
 	$(CC) $(CFLAGS) -o polyhedron_app $(OBJS) $(LDFLAGS)
 
 # Rule for building object files
 $(OBJDIR)/%.o: src/%.c
-	@if not exist $(OBJDIR) mkdir $(OBJDIR)
+	mkdir -p $(OBJDIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # Phony target for cleaning up
 .PHONY: clean
 clean:
-	@if exist $(OBJDIR) rmdir /s /q $(OBJDIR)
+	rm -rf $(OBJDIR)
