@@ -4,7 +4,6 @@
 #include "poly_operations.h"
 #include "visualization.h"
 
-
 #define MAX_LINE_LENGTH 100
 
 // Main function
@@ -22,7 +21,13 @@ int main(int argc, char *argv[])
     {
         return 1; // Exit if the polyhedron couldn't be read
     }
+    // Calculate the volume
+    float volume = calculate_volume(polyhedron);
+    printf("Volume of the polyhedron: %f\n", volume);
 
+    // Calculate the surface area
+    float surface_area = calculate_surface_area(polyhedron);
+    printf("Surface area of the polyhedron: %f\n", surface_area);
     // Visualize the loaded polyhedron
     printf("Visualizing the polyhedron loaded from %s\n", input_filename);
     visualize_polyhedron(polyhedron);
@@ -47,7 +52,13 @@ int main(int argc, char *argv[])
             snprintf(translated_filename, sizeof(translated_filename), "%s_translated_object.txt", input_filename);
             write_polyhedron_to_file(polyhedron, translated_filename);
             printf("Translated polyhedron saved to %s\n", translated_filename);
+            // Calculate the volume
+            float volume = calculate_volume(polyhedron);
+            printf("Volume of the polyhedron: %f\n", volume);
 
+            // Calculate the surface area
+            float surface_area = calculate_surface_area(polyhedron);
+            printf("Surface area of the polyhedron: %f\n", surface_area);
             // Visualize the translated polyhedron
             visualize_polyhedron(polyhedron);
         }
@@ -88,7 +99,13 @@ int main(int argc, char *argv[])
             snprintf(rotated_filename, sizeof(rotated_filename), "%s_rotated_%c_object.txt", input_filename, axis_choice);
             write_polyhedron_to_file(polyhedron, rotated_filename);
             printf("Rotated polyhedron saved to %s\n", rotated_filename);
+            // Calculate the volume
+            float volume = calculate_volume(polyhedron);
+            printf("Volume of the polyhedron: %f\n", volume);
 
+            // Calculate the surface area
+            float surface_area = calculate_surface_area(polyhedron);
+            printf("Surface area of the polyhedron: %f\n", surface_area);
             // Visualize the rotated polyhedron
             visualize_polyhedron(polyhedron);
         }
@@ -109,11 +126,25 @@ int main(int argc, char *argv[])
             if (part1 != NULL)
             {
                 write_polyhedron_to_file(part1, "part1_sliced.txt");
+                // Calculate the volume
+                float volume = calculate_volume(polyhedron);
+                printf("Volume of the polyhedron: %f\n", volume);
+
+                // Calculate the surface area
+                float surface_area = calculate_surface_area(polyhedron);
+                printf("Surface area of the polyhedron: %f\n", surface_area);
                 visualize_polyhedron(part1);
             }
             if (part2 != NULL)
             {
                 write_polyhedron_to_file(part2, "part2_sliced.txt");
+                // Calculate the volume
+                float volume = calculate_volume(polyhedron);
+                printf("Volume of the polyhedron: %f\n", volume);
+
+                // Calculate the surface area
+                float surface_area = calculate_surface_area(polyhedron);
+                printf("Surface area of the polyhedron: %f\n", surface_area);
                 visualize_polyhedron(part2);
             }
 

@@ -189,3 +189,78 @@ void slice_polyhedron(Polyhedron *p, float A, float B, float C, float D, Polyhed
     free(vertex_mapping_part1);
     free(vertex_mapping_part2);
 }
+
+// Helper function to compute the volume of a tetrahedron given four points
+float tetrahedron_volume(Vertex v0, Vertex v1, Vertex v2, Vertex v3) {
+    float volume = (v1.x - v0.x) * ((v2.y - v0.y) * (v3.z - v0.z) - (v2.z - v0.z) * (v3.y - v0.y)) -
+                   (v1.y - v0.y) * ((v2.x - v0.x) * (v3.z - v0.z) - (v2.z - v0.z) * (v3.x - v0.x)) +
+                   (v1.z - v0.z) * ((v2.x - v0.x) * (v3.y - v0.y) - (v2.y - v0.y) * (v3.x - v0.x));
+    return fabs(volume) / 6.0;
+}
+
+// Function to calculate the volume of a polyhedron using the tetrahedron method
+float calculate_volume(Polyhedron *p) {
+    Vertex origin = {0.0, 0.0, 0.0}; // Assume the origin is at (0, 0, 0)
+    float total_volume = 0.0;
+
+    for (int i = 0; i < p->face_count; i++) {
+        Face face = p->faces[i];
+        for (int j = 1; j < face.vertex_count - 1; j++) {
+            Vertex v0 = p->vertices[face.vertices[0]];  // First vertex of the face
+            Vertex v1 = p->vertices[face.vertices[j]];  // Current vertex
+            Vertex v2 = p->vertices[face.vertices[j + 1]]; // Next vertex
+
+            // Compute volume of tetrahedron formed by the face and the origin
+            total_volume += tetrahedron_volume(origin, v0, v1, v2);
+        }
+    }
+    return total_volume;
+}
+
+// Helper function to calculate the cross product of two vectors (for area computation)
+Vertex cross_product(Vertex v1, Vertex v2) {
+    Vertex result;
+    result.x = v1.y * v2.z - v1.z * v2.y;
+    result.y = v1.z * v2.x - v1.x * v2.z;
+    result.z = v1.x * v2.y - v1.y * v2.x;
+    return result;
+}
+
+// Helper function to calculate the magnitude of a vector
+float vector_magnitude(Vertex v) {
+    return sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+}
+
+// Helper function to calculate the area of a polygonal face using the "shoelace method"
+float polygon_area(Polyhedron *p, Face face) {
+    float area = 0.0;
+
+    for (int i = 1; i < face.vertex_count - 1; i++) {
+        Vertex v0 = p->vertices[face.vertices[0]];
+        Vertex v1 = p->vertices[face.vertices[i]];
+        Vertex v2 = p->vertices[face.vertices[i + 1]];
+
+        // Calculate two vectors
+        Vertex v1_minus_v0 = {v1.x - v0.x, v1.y - v0.y, v1.z - v0.z};
+        Vertex v2_minus_v0 = {v2.x - v0.x, v2.y - v0.y, v2.z - v0.z};
+
+        // Calculate the cross product of these vectors (parallelogram area)
+        Vertex cross = cross_product(v1_minus_v0, v2_minus_v0);
+
+        // Add the magnitude of the cross product (half of it gives the area of a triangle)
+        area += vector_magnitude(cross) / 2.0;
+    }
+    return area;
+}
+
+// Function to calculate the total surface area of the polyhedron
+float calculate_surface_area(Polyhedron *p) {
+    float total_area = 0.0;
+
+    // Loop over each face and calculate the polygon's area
+    for (int i = 0; i < p->face_count; i++) {
+        total_area += polygon_area(p, p->faces[i]);
+    }
+
+    return total_area;
+}
