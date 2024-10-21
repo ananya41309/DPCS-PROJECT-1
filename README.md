@@ -101,12 +101,6 @@ Face Count: 4
   Enter the normal vector of the slicing plane (A B C): 1 0 0
   Enter the distance from the origin (D): -0.5
   ```
-- **Calculate Geometric Properties**:  
-  ```
-  Choose operation: g
-  Surface area: 4.0
-  Volume: 1.333
-  ```
 
 **Visualization**  
 After performing a translation or rotation, the polyhedron is visualized in a 640x480 window. The program projects the 3D coordinates onto a 2D screen using simple perspective projection.
