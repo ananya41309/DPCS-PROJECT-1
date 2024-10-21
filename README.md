@@ -9,7 +9,7 @@ The program uses SDL2 for visualization and standard C libraries for file I/O an
 - **Read/Write Polyhedron Data**: Load polyhedron data (vertices, edges, faces) from a text file and save the modified data back to a file.
 - **Translate**: Move the polyhedron along the X, Y, and Z axes.
 - **Rotate**: Rotate the polyhedron around the X, Y, or Z axes by a specified angle.
-- **Slice**: Slice the polyhedron into two parts using a user-defined plane.
+- **Slice**: Slice the polyhedron using a user-defined plane.
 - **Visualize**: Render the polyhedron in a 3D space using SDL2 with perspective projection.
 - **Geometric Properties**: Calculate and display the surface area and volume of the polyhedron.
 
@@ -103,7 +103,7 @@ Face Count: 4
   ```
 
 **Visualization**  
-After performing a translation or rotation, the polyhedron is visualized in a 640x480 window. The program projects the 3D coordinates onto a 2D screen using simple perspective projection.
+After performing a translation or rotation, the polyhedron is visualized in a 640x480 window. The program projects the 3D coordinates onto a 2D screen using simple perspective projection. I have specifically made use of the SDL2 library here because SDL2 simplifies the rendering of 2D and basic 3D graphics. It makes it easier to visualize geometric shapes like polyhedrons, which is a key part of my project.
 
 **Future Improvements**  
 - **Advanced Rendering**: Add more advanced rendering techniques, such as shading or more realistic 3D rendering.
