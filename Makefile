@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -Wall -I src/include
+CFLAGS = -Wall -I /usr/local/include 
 LDFLAGS = -L /usr/local/lib -lSDL2main -lSDL2 -lm # SDL2 paths for macOS
 OBJDIR = obj
 
