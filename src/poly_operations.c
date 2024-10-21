@@ -119,30 +119,34 @@ void slice_polyhedron(Polyhedron *p, float A, float B, float C, float D, Polyhed
     int vertex_count_part2 = 0;
     int max_new_vertices = p->vertex_count + p->edge_count; // max number of vertices after slicing
     
-    // Temporary storage for vertices
+    // Temporary storage for vertices and edges
     Vertex *vertices_part1 = (Vertex*)malloc(max_new_vertices * sizeof(Vertex));
     Vertex *vertices_part2 = (Vertex*)malloc(max_new_vertices * sizeof(Vertex));
-
-    // Track which vertices go into part1 and part2
+    
+    Edge *edges_part1 = (Edge*)malloc(p->edge_count * sizeof(Edge));
+    Edge *edges_part2 = (Edge*)malloc(p->edge_count * sizeof(Edge));
+    
+    // Track how edges and vertices are mapped
     int *vertex_mapping_part1 = (int*)malloc(p->vertex_count * sizeof(int));
     int *vertex_mapping_part2 = (int*)malloc(p->vertex_count * sizeof(int));
+    
+    int edge_count_part1 = 0;
+    int edge_count_part2 = 0;
 
-    // Process each edge and classify vertices
+    // Process each vertex and classify it
     for (int i = 0; i < p->vertex_count; i++) {
         float distance = A * p->vertices[i].x + B * p->vertices[i].y + C * p->vertices[i].z + D;
-
+        
         if (distance >= 0) {
-            // Vertex goes into part1
             vertices_part1[vertex_count_part1] = p->vertices[i];
             vertex_mapping_part1[i] = vertex_count_part1++;
         } else {
-            // Vertex goes into part2
             vertices_part2[vertex_count_part2] = p->vertices[i];
             vertex_mapping_part2[i] = vertex_count_part2++;
         }
     }
 
-    // Now process edges that intersect the plane
+    // Now process edges that intersect the slicing plane
     for (int i = 0; i < p->edge_count; i++) {
         Edge edge = p->edges[i];
         int v1 = edge.v1;
@@ -165,30 +169,46 @@ void slice_polyhedron(Polyhedron *p, float A, float B, float C, float D, Polyhed
 
             vertices_part2[vertex_count_part2] = intersection_point;
             vertex_mapping_part2[p->vertex_count + i] = vertex_count_part2++;
+        } 
+        
+        // Classify edge based on its vertices
+        if (dist_v1 >= 0 && dist_v2 >= 0) {
+            edges_part1[edge_count_part1++] = (Edge){vertex_mapping_part1[v1], vertex_mapping_part1[v2]};
+        } else if (dist_v1 < 0 && dist_v2 < 0) {
+            edges_part2[edge_count_part2++] = (Edge){vertex_mapping_part2[v1], vertex_mapping_part2[v2]};
         }
     }
 
-    // Allocate and populate part1 and part2 if they have vertices
+    // Allocate and populate part1 and part2
     if (vertex_count_part1 > 0) {
-        *part1 = create_polyhedron(vertex_count_part1, p->edge_count, p->face_count);  // Adjust as needed
+        *part1 = create_polyhedron(vertex_count_part1, edge_count_part1, p->face_count);  // Adjust as needed
         for (int i = 0; i < vertex_count_part1; i++) {
             (*part1)->vertices[i] = vertices_part1[i];
+        }
+        for (int i = 0; i < edge_count_part1; i++) {
+            (*part1)->edges[i] = edges_part1[i];
         }
     }
 
     if (vertex_count_part2 > 0) {
-        *part2 = create_polyhedron(vertex_count_part2, p->edge_count, p->face_count);  // Adjust as needed
+        *part2 = create_polyhedron(vertex_count_part2, edge_count_part2, p->face_count);  // Adjust as needed
         for (int i = 0; i < vertex_count_part2; i++) {
             (*part2)->vertices[i] = vertices_part2[i];
+        }
+        for (int i = 0; i < edge_count_part2; i++) {
+            (*part2)->edges[i] = edges_part2[i];
         }
     }
 
     // Free temporary storage
     free(vertices_part1);
     free(vertices_part2);
+    free(edges_part1);
+    free(edges_part2);
     free(vertex_mapping_part1);
     free(vertex_mapping_part2);
 }
+
 
 // Helper function to compute the volume of a tetrahedron given four points
 float tetrahedron_volume(Vertex v0, Vertex v1, Vertex v2, Vertex v3) {
