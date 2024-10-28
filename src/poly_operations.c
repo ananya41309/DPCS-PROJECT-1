@@ -1,4 +1,6 @@
 #include "poly_operations.h"
+#include "visualization.h"
+#include "data_structures.h"
 #include <stdbool.h>
 #include <math.h>
 #include <stdio.h>
@@ -283,4 +285,195 @@ float calculate_surface_area(Polyhedron *p) {
     }
 
     return total_area;
+}
+
+// Project the polyhedron onto the YZ-plane (Front view)
+void project_front_view(Polyhedron *p) {
+    Vertex *projected_vertices = (Vertex *)malloc(p->vertex_count * sizeof(Vertex));
+    for (int i = 0; i < p->vertex_count; i++) {
+        projected_vertices[i].x = p->vertices[i].y;  // YZ-plane: Use y as x-coordinate
+        projected_vertices[i].y = p->vertices[i].z;  // Use z as y-coordinate
+    }
+    visualize_orthographic_projection(projected_vertices, p->edges, p->vertex_count, p->edge_count, "Front View (YZ-plane)");
+    free(projected_vertices);
+}
+
+// Project the polyhedron onto the XZ-plane (Top view)
+void project_top_view(Polyhedron *p) {
+    Vertex *projected_vertices = (Vertex *)malloc(p->vertex_count * sizeof(Vertex));
+    for (int i = 0; i < p->vertex_count; i++) {
+        projected_vertices[i].x = p->vertices[i].x;  // XZ-plane: Use x as x-coordinate
+        projected_vertices[i].y = p->vertices[i].z;  // Use z as y-coordinate
+    }
+    visualize_orthographic_projection(projected_vertices, p->edges, p->vertex_count, p->edge_count, "Top View (XZ-plane)");
+    free(projected_vertices);
+}
+
+// Project the polyhedron onto the XY-plane (Right view)
+void project_side_view(Polyhedron *p) {
+    Vertex *projected_vertices = (Vertex *)malloc(p->vertex_count * sizeof(Vertex));
+    for (int i = 0; i < p->vertex_count; i++) {
+        projected_vertices[i].x = p->vertices[i].x;  // XY-plane: Use x as x-coordinate
+        projected_vertices[i].y = p->vertices[i].y;  // Use y as y-coordinate
+    }
+    visualize_orthographic_projection(projected_vertices, p->edges, p->vertex_count, p->edge_count, "Side View (XY-plane)");
+    free(projected_vertices);
+}
+
+// Helper function to match vertices based on proximity (to account for minor numerical differences)
+int find_matching_vertex(float x, float y, float z, ReconstructedVertex *vertices, int count) {
+    for (int i = 0; i < count; i++) {
+        if (!vertices[i].matched &&
+            fabs(vertices[i].x - x) < 1e-3 &&
+            fabs(vertices[i].y - y) < 1e-3 &&
+            fabs(vertices[i].z - z) < 1e-3) {
+            vertices[i].matched = 1; // Mark as matched
+            return i;
+        }
+    }
+    return -1; // No match found
+}
+
+// Extract vertices from each view projection (dummy function for demonstration)
+void extract_vertices_from_projection(Vertex *vertices, int vertex_count, char view) {
+    for (int i = 0; i < vertex_count; i++) {
+        switch (view) {
+            case 'f':  // Front view (YZ-plane)
+                vertices[i].x = 0.0; // x is unknown in front view
+                break;
+            case 't':  // Top view (XZ-plane)
+                vertices[i].y = 0.0; // y is unknown in top view
+                break;
+            case 's':  // Side view (XY-plane)
+                vertices[i].z = 0.0; // z is unknown in side view
+                break;
+        }
+    }
+}
+
+// Find or create a matching vertex in the reconstructed vertex list
+int find_or_create_vertex(Vertex v, Vertex *reconstructed_vertices, int *reconstructed_count, int max_vertices) {
+    for (int i = 0; i < *reconstructed_count; i++) {
+        if (fabs(reconstructed_vertices[i].x - v.x) < 1e-3 &&
+            fabs(reconstructed_vertices[i].y - v.y) < 1e-3 &&
+            fabs(reconstructed_vertices[i].z - v.z) < 1e-3) {
+            return i; // Vertex found
+        }
+    }
+    // If not found, add the new vertex if within bounds
+    if (*reconstructed_count < max_vertices) {
+        reconstructed_vertices[*reconstructed_count] = v;
+        (*reconstructed_count)++;
+        return *reconstructed_count - 1; // Index of new vertex
+    } else {
+        fprintf(stderr, "Error: Vertex count exceeds maximum allowed (%d).\n", max_vertices);
+        exit(1);
+    }
+}
+
+// Reconstruct the polyhedron with vertices, edges, and faces from 2D projections
+Polyhedron* reconstruct_polyhedron_from_views(Vertex *front_view, int front_count,
+                                              Vertex *top_view, int top_count,
+                                              Vertex *side_view, int side_count) {
+    int max_vertices = front_count + top_count + side_count; // Estimate max vertices
+    Vertex *reconstructed_vertices = (Vertex *)malloc(max_vertices * sizeof(Vertex));
+    int reconstructed_count = 0;
+
+    if (!reconstructed_vertices) {
+        fprintf(stderr, "Error: Memory allocation failed for vertices.\n");
+        exit(1);
+    }
+
+    // Populate vertices from Front View (YZ-plane)
+    for (int i = 0; i < front_count; i++) {
+        Vertex v = {0.0, front_view[i].x, front_view[i].y}; // x is 0 in front view
+        find_or_create_vertex(v, reconstructed_vertices, &reconstructed_count, max_vertices);
+    }
+
+    // Populate vertices from Top View (XZ-plane)
+    for (int i = 0; i < top_count; i++) {
+        Vertex v = {top_view[i].x, 0.0, top_view[i].y}; // y is 0 in top view
+        find_or_create_vertex(v, reconstructed_vertices, &reconstructed_count, max_vertices);
+    }
+
+    // Populate vertices from Side View (XY-plane)
+    for (int i = 0; i < side_count; i++) {
+        Vertex v = {side_view[i].x, side_view[i].y, 0.0}; // z is 0 in side view
+        find_or_create_vertex(v, reconstructed_vertices, &reconstructed_count, max_vertices);
+    }
+
+    // Allocate memory for the Polyhedron and copy vertices
+    Polyhedron *polyhedron = (Polyhedron *)malloc(sizeof(Polyhedron));
+    if (!polyhedron) {
+        fprintf(stderr, "Error: Memory allocation failed for polyhedron.\n");
+        free(reconstructed_vertices);
+        exit(1);
+    }
+    
+    polyhedron->vertices = (Vertex *)malloc(reconstructed_count * sizeof(Vertex));
+    if (!polyhedron->vertices) {
+        fprintf(stderr, "Error: Memory allocation failed for polyhedron vertices.\n");
+        free(reconstructed_vertices);
+        free(polyhedron);
+        exit(1);
+    }
+    
+    polyhedron->vertex_count = reconstructed_count;
+    for (int i = 0; i < reconstructed_count; i++) {
+        polyhedron->vertices[i] = reconstructed_vertices[i];
+    }
+
+    // Define edges based on adjacency (simplified assumption)
+    int max_edges = reconstructed_count * 3;
+    polyhedron->edges = (Edge *)malloc(max_edges * sizeof(Edge));
+    if (!polyhedron->edges) {
+        fprintf(stderr, "Error: Memory allocation failed for polyhedron edges.\n");
+        free(reconstructed_vertices);
+        free(polyhedron->vertices);
+        free(polyhedron);
+        exit(1);
+    }
+    polyhedron->edge_count = 0;
+
+    // Sample adjacency-based edge definition (adjust based on actual view)
+    for (int i = 0; i < reconstructed_count - 1; i++) {
+        polyhedron->edges[polyhedron->edge_count].v1 = i;
+        polyhedron->edges[polyhedron->edge_count].v2 = i + 1;
+        polyhedron->edge_count++;
+    }
+
+    // Define simple quad faces (adjust according to actual needs)
+    polyhedron->faces = (Face *)malloc((reconstructed_count / 4) * sizeof(Face));
+    if (!polyhedron->faces) {
+        fprintf(stderr, "Error: Memory allocation failed for polyhedron faces.\n");
+        free(reconstructed_vertices);
+        free(polyhedron->vertices);
+        free(polyhedron->edges);
+        free(polyhedron);
+        exit(1);
+    }
+    polyhedron->face_count = 0;
+
+    for (int i = 0; i < reconstructed_count; i += 4) {
+        polyhedron->faces[polyhedron->face_count].vertices = (int *)malloc(4 * sizeof(int));
+        if (!polyhedron->faces[polyhedron->face_count].vertices) {
+            fprintf(stderr, "Error: Memory allocation failed for face vertices.\n");
+            free(reconstructed_vertices);
+            free(polyhedron->vertices);
+            free(polyhedron->edges);
+            free(polyhedron);
+            exit(1);
+        }
+
+        polyhedron->faces[polyhedron->face_count].vertex_count = 4;
+        for (int j = 0; j < 4; j++) {
+            polyhedron->faces[polyhedron->face_count].vertices[j] = i + j;
+        }
+        polyhedron->face_count++;
+    }
+
+    // Free the temporary reconstructed vertices array
+    free(reconstructed_vertices);
+
+    return polyhedron;
 }

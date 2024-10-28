@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include<stdlib.h>
 #include "data_structures.h"
 #include "io_operations.h"
 #include "poly_operations.h"
@@ -31,6 +32,30 @@ int main(int argc, char *argv[])
     // Visualize the loaded polyhedron
     printf("Visualizing the polyhedron loaded from %s\n", input_filename);
     visualize_polyhedron(polyhedron);
+
+    char view_choice;
+    printf("Choose an orthographic view (t: Top, f: Front, s: Side): ");
+    scanf(" %c", &view_choice);
+    while (view_choice != 'e')
+    {
+        printf("Choose an orthographic view (t: Top, f: Front, s: Side): ");
+    scanf(" %c", &view_choice);
+        switch (view_choice)
+        {
+        case 't':
+            project_top_view(polyhedron);
+            break;
+        case 'f':
+            project_front_view(polyhedron);
+            break;
+        case 's':
+            project_side_view(polyhedron);
+            break;
+        default:
+            printf("Invalid choice. Please enter 't', 'f', or 's'.\n");
+            break;
+        }
+    }
 
     char operation_choice;
     while (1)
@@ -166,9 +191,49 @@ int main(int argc, char *argv[])
             printf("Invalid choice! Please enter 'r', 't', or 'e'.\n");
         }
     }
-
     // Free allocated memory before exiting
     free_polyhedron(polyhedron);
+
+     // Read vertices from each file
+    Vertex *front_view = NULL;
+    Vertex *top_view = NULL;
+    Vertex *side_view = NULL;
+
+    int front_count = read_vertices_from_file("front_view.txt", &front_view, 'f');
+    int top_count = read_vertices_from_file("top_view.txt", &top_view, 't');
+    int side_count = read_vertices_from_file("side_view.txt", &side_view, 's');
+
+    if (front_count == 0 || top_count == 0 || side_count == 0) {
+        fprintf(stderr, "Error: Failed to read vertices from one or more files.\n");
+        free(front_view);
+        free(top_view);
+        free(side_view);
+        return 1;
+    }
+ printf("Reconstructing Polyhedron:\n");
+    // Reconstruct the polyhedron from the orthographic projections
+    Polyhedron *reconstructed_polyhedron = reconstruct_polyhedron_from_views(
+        front_view, front_count, top_view, top_count, side_view, side_count
+    );
+
+    // Output the reconstructed vertices for verification
+    printf("Reconstructed Polyhedron Vertices:\n");
+    for (int i = 0; i < reconstructed_polyhedron->vertex_count; i++) {
+        printf("Vertex %d: (%.2f, %.2f, %.2f)\n", i + 1,
+               reconstructed_polyhedron->vertices[i].x,
+               reconstructed_polyhedron->vertices[i].y,
+               reconstructed_polyhedron->vertices[i].z);
+    }
+
+    // Visualize the reconstructed polyhedron (assuming SDL is set up)
+    visualize_polyhedron(reconstructed_polyhedron);
+
+    // Free allocated memory
+    free(front_view);
+    free(top_view);
+    free(side_view);
+    free_polyhedron(reconstructed_polyhedron);
+
 
     return 0;
 }
