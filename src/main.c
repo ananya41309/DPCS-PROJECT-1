@@ -33,12 +33,10 @@ int main(int argc, char *argv[])
     printf("Visualizing the polyhedron loaded from %s\n", input_filename);
     visualize_polyhedron(polyhedron);
 
-    char view_choice;
-    printf("Choose an orthographic view (t: Top, f: Front, s: Side): ");
-    scanf(" %c", &view_choice);
+    char view_choice = 'a';
     while (view_choice != 'e')
     {
-        printf("Choose an orthographic view (t: Top, f: Front, s: Side): ");
+        printf("Choose an orthographic view (t: Top, f: Front, s: Side, e: Exit): ");
     scanf(" %c", &view_choice);
         switch (view_choice)
         {
@@ -51,8 +49,10 @@ int main(int argc, char *argv[])
         case 's':
             project_side_view(polyhedron);
             break;
+        case 'e':
+            break;
         default:
-            printf("Invalid choice. Please enter 't', 'f', or 's'.\n");
+            printf("Invalid choice. Please enter 't', 'f', 's' or 'e'.\n");
             break;
         }
     }
@@ -226,6 +226,7 @@ int main(int argc, char *argv[])
     }
 
     // Visualize the reconstructed polyhedron (assuming SDL is set up)
+    write_polyhedron_to_file(reconstructed_polyhedron, "reconstructed_polyhedron.txt");
     visualize_polyhedron(reconstructed_polyhedron);
 
     // Free allocated memory
