@@ -31,6 +31,8 @@ The program uses SDL2 for visualization and standard C libraries for file I/O an
 - **Slicing**: Slice the polyhedron using a plane defined by the equation `Ax + By + Cz + D = 0`, creating two new polyhedra.
 - **Visualization**: Render the polyhedron as wireframes in a 3D perspective view using SDL2.
 - **Geometric Properties**: Calculate the surface area and volume of the polyhedron based on its vertices and faces.
+- Orthographic Projection: Generate orthographic projections of the polyhedron for standard views (top, front, and side). This feature creates 2D projections where the 3D object is displayed without perspective distortion, making it useful for engineering and design purposes. Each view (top, front, side) displays the polyhedron’s dimensions and spatial relationships as seen from perpendicular angles.
+- 3D Reconstruction: Reconstruct the 3D polyhedron from given 2D orthographic projections. This process involves taking multiple 2D views (typically top, front, and side projections) and aligning them in 3D space to approximate the original polyhedron structure.
 
 **Input and Output**  
 - **Input Format**:  
@@ -103,7 +105,7 @@ Face Count: 4
   ```
 
 **Visualization**  
-After performing a translation or rotation, the polyhedron is visualized in a 640x480 window. The program projects the 3D coordinates onto a 2D screen using simple perspective projection. I have specifically made use of the SDL2 library here because SDL2 simplifies the rendering of 2D and basic 3D graphics. It makes it easier to visualize geometric shapes like polyhedrons, which is a key part of my project.
+After performing a translation or rotation, the polyhedron is visualized in a 640x480 window. The program projects the 3D coordinates onto a 2D screen using simple perspective projection. The visualized window needs to be crossed using the red cross on the window on the user's desktop, in order for the program to run and ask for other inputs. I have specifically made use of the SDL2 library here because SDL2 simplifies the rendering of 2D and basic 3D graphics. It makes it easier to visualize geometric shapes like polyhedrons, which is a key part of my project.
 
 **Future Improvements**  
 - **Advanced Rendering**: Add more advanced rendering techniques, such as shading or more realistic 3D rendering.
