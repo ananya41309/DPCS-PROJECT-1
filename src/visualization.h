@@ -3,6 +3,7 @@
 
 #include "data_structures.h"
 
+// Function to visualize a 3D polyhedron using SDL rendering with perspective projection
 void visualize_polyhedron(Polyhedron *p);
 
-#endif
+#endif // VISUALIZATION_H

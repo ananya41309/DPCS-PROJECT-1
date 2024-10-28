@@ -23,6 +23,11 @@ typedef struct {
     int face_count;
 } Polyhedron;
 
+typedef struct {
+    float x, y, z;
+    int matched;  // Flag to mark if the vertex has been matched across projections
+} ReconstructedVertex;
+
 Polyhedron* create_polyhedron(int vertex_count, int edge_count, int face_count);
 void free_polyhedron(Polyhedron *p);
 

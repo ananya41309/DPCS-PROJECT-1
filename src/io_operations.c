@@ -113,3 +113,47 @@ void write_polyhedron_to_file(Polyhedron *p, const char *filename)
 
     fclose(file);
 }
+
+// Reads vertices from a file into the given array, setting unused coordinate to 0 based on view
+int read_vertices_from_file(const char *filename, Vertex **vertices, char view) {
+    FILE *file = fopen(filename, "r");
+    if (!file) {
+        fprintf(stderr, "Error: Could not open file %s\n", filename);
+        return 0;
+    }
+
+    int count = 0;
+    float coord1, coord2;
+    char line[100];
+    while (fgets(line, sizeof(line), file)) {
+        if (line[0] == '#') continue;  // Skip comments
+
+        if (sscanf(line, "%f %f", &coord1, &coord2) == 2) {
+            *vertices = (Vertex *)realloc(*vertices, (count + 1) * sizeof(Vertex));
+
+            switch (view) {
+                case 'f':  // Front view (YZ-plane)
+                    (*vertices)[count].x = 0.0;   // Ignoring x
+                    (*vertices)[count].y = coord1; // y-coordinate
+                    (*vertices)[count].z = coord2; // z-coordinate
+                    break;
+
+                case 't':  // Top view (XZ-plane)
+                    (*vertices)[count].x = coord1; // x-coordinate
+                    (*vertices)[count].y = 0.0;    // Ignoring y
+                    (*vertices)[count].z = coord2; // z-coordinate
+                    break;
+
+                case 's':  // Side view (XY-plane)
+                    (*vertices)[count].x = coord1; // x-coordinate
+                    (*vertices)[count].y = coord2; // y-coordinate
+                    (*vertices)[count].z = 0.0;    // Ignoring z
+                    break;
+            }
+            count++;
+        }
+    }
+printf("%d",count);
+    fclose(file);
+    return count;  // Return the number of vertices read
+}
